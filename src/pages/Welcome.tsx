@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mascot } from "../components/ui";
+import { Mascot, showMessage } from "../components/ui";
 
 export default function Welcome() {
   return (
@@ -42,8 +42,8 @@ export default function Welcome() {
           Já tenho uma conta
         </Link>
         <p className="tiny muted center">
-          Ao continuar, você concorda com os <a href="#/bem-vindo" onClick={(e) => { e.preventDefault(); alert(TERMS); }}>termos de uso</a> e a{" "}
-          <a href="#/bem-vindo" onClick={(e) => { e.preventDefault(); alert(PRIVACY); }}>política de privacidade</a>.
+          Ao continuar, você concorda com os <a href="#/bem-vindo" onClick={(e) => { e.preventDefault(); void showMessage(TERMS, "Termos de uso"); }}>termos de uso</a> e a{" "}
+          <a href="#/bem-vindo" onClick={(e) => { e.preventDefault(); void showMessage(PRIVACY, "Política de privacidade"); }}>política de privacidade</a>.
         </p>
       </div>
     </main>
@@ -51,7 +51,7 @@ export default function Welcome() {
 }
 
 export const TERMS =
-  "Termos de uso (resumo)\n\nO Caderno é uma ferramenta de apoio aos estudos. As questões geradas por IA são inspiradas no estilo das bancas e não são questões oficiais. Confira legislação e conteúdos sujeitos a atualização em fontes oficiais.";
+  "O Caderno é uma ferramenta de apoio aos estudos. As questões geradas por IA são inspiradas no estilo das bancas e não são questões oficiais. Confira legislação e conteúdos sujeitos a atualização em fontes oficiais.";
 
 export const PRIVACY =
-  "Política de privacidade (resumo)\n\nNesta versão, seus dados ficam salvos apenas neste dispositivo/navegador. Quando você gera questões ou pede explicações, o conteúdo selecionado (matéria, assuntos e o material que você escolher enviar) é enviado ao serviço de IA somente para criar a resposta. Você pode exportar ou excluir seus dados a qualquer momento no Perfil.";
+  "Nesta versão, seus dados ficam salvos apenas neste dispositivo/navegador. Quando você gera questões ou pede explicações, o conteúdo selecionado (matéria, assuntos e o material que você escolher enviar) é enviado ao serviço de IA somente para criar a resposta. Você pode exportar ou excluir seus dados a qualquer momento no Perfil.";

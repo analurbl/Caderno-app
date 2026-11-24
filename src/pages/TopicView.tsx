@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useStore } from "../store";
-import { Chips, Empty, Icon, TopBar, confirmAction } from "../components/ui";
+import { Chips, Empty, Icon, TopBar, askText, confirmAction } from "../components/ui";
 import { addDays, dayKey, fmtDuration, fmtShortDate } from "../lib/time";
 import { STATUS_LABEL, topicSeconds } from "../lib/stats";
 import type { TopicStatus } from "../types";
@@ -41,12 +41,12 @@ export default function TopicView() {
     );
   }
 
-  const rename = () => {
-    const name = window.prompt("Nome do assunto", topic.name);
+  const rename = async () => {
+    const name = await askText("Nome do assunto", topic.name);
     if (name?.trim()) updateTopic(topic.id, { name: name.trim() });
   };
-  const editDescription = () => {
-    const d = window.prompt("Descrição", topic.description);
+  const editDescription = async () => {
+    const d = await askText("Descrição", topic.description, { multiline: true });
     if (d !== null) updateTopic(topic.id, { description: d.trim() });
   };
 
@@ -187,8 +187,8 @@ export default function TopicView() {
 
         <button
           className="btn btn-danger btn-block"
-          onClick={() => {
-            if (confirmAction(`Excluir o assunto "${topic.name}"? Anotações e revisões serão removidas.`)) {
+          onClick={async () => {
+            if (await confirmAction(`Excluir o assunto "${topic.name}"? Anotações e revisões serão removidas.`)) {
               removeTopic(topic.id);
               nav(sub ? `/materia/${sub.id}` : "/cadernos", { replace: true });
             }

@@ -242,8 +242,8 @@ function SessionSheet({ session, day, onClose }: { session: StudySession | "new"
           <button
             type="button"
             className="btn btn-danger btn-block"
-            onClick={() => {
-              if (confirmAction("Excluir este registro de estudo? Ele deixará de contar nas metas e estatísticas.")) {
+            onClick={async () => {
+              if (await confirmAction("Excluir este registro de estudo? Ele deixará de contar nas metas e estatísticas.")) {
                 useStore.getState().removeSession(existing.id);
                 onClose();
               }

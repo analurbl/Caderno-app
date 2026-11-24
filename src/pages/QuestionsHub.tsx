@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useStore } from "../store";
 import { Chips, Icon, Mascot, Sheet, Toggle, TopBar, confirmAction } from "../components/ui";
-import { generateQuestions } from "../lib/api";
+import { IS_PREVIEW, generateQuestions } from "../lib/api";
 import { weakPoints } from "../lib/stats";
 import { relativeDay, uid } from "../lib/time";
 import type { Banca, Dificuldade, Formato, ListConfig, QuestionList } from "../types";
@@ -185,7 +185,7 @@ export default function QuestionsHub() {
                     {Object.values(l.answers).filter((a) => a.confirmed).length}/{l.questions.length} respondidas · {l.config.modo === "simulado" ? "Simulado" : "Treino"}
                   </div>
                 </Link>
-                <button className="icon-btn" aria-label="Excluir lista" onClick={() => confirmAction("Excluir esta lista não finalizada?") && s.removeList(l.id)}>
+                <button className="icon-btn" aria-label="Excluir lista" onClick={async () => (await confirmAction("Excluir esta lista não finalizada?")) && s.removeList(l.id)}>
                   <Icon name="trash" size={18} />
                 </button>
               </div>
@@ -193,6 +193,12 @@ export default function QuestionsHub() {
           </section>
         )}
 
+        {IS_PREVIEW && (
+          <div className="banner warn small">
+            <Icon name="alert" />
+            <span>Prévia: aqui você pode montar a lista, mas gerar questões exige rodar o app com o servidor e a chave da IA.</span>
+          </div>
+        )}
         <section className="card stack">
           <h2 className="section-title">Nova lista</h2>
           <div className="field">

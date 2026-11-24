@@ -179,8 +179,8 @@ export default function SubjectView() {
         </button>
         <button
           className="btn btn-danger btn-block"
-          onClick={() => {
-            if (confirmAction(`Excluir "${sub.name}" e seus assuntos? O tempo estudado continua no histórico geral.`)) {
+          onClick={async () => {
+            if (await confirmAction(`Excluir "${sub.name}" e seus assuntos? O tempo estudado continua no histórico geral.`)) {
               const back = nb ? `/caderno/${nb.id}` : "/cadernos";
               removeSubject(sub.id);
               nav(back, { replace: true });

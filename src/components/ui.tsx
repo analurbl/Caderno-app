@@ -269,6 +269,4 @@ export function BottomNav({ studying }: { studying: boolean }) {
   );
 }
 
-export function confirmAction(message: string): boolean {
-  return window.confirm(message);
-}
+export { confirmAction, showMessage, askText } from "./dialog";

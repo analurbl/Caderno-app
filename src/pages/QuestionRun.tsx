@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useStore } from "../store";
-import { Empty, Icon, Mascot, Sheet, TopBar } from "../components/ui";
+import { Empty, Icon, Mascot, Sheet, TopBar, confirmAction } from "../components/ui";
 import { explainMore } from "../lib/api";
 import { bancaName } from "./QuestionsHub";
 import type { Answer, Question, QuestionList } from "../types";
@@ -88,9 +88,9 @@ export default function QuestionRun() {
     if (simulado && idx < total - 1) updateList(list.id, { current: idx + 1 });
   };
 
-  const finish = () => {
+  const finish = async () => {
     const unanswered = list.questions.filter((x) => !list.answers[x.id]?.confirmed).length;
-    if (unanswered && !window.confirm(`${unanswered} questão(ões) sem resposta. Encerrar mesmo assim?`)) return;
+    if (unanswered && !(await confirmAction(`${unanswered} questão(ões) sem resposta. Encerrar mesmo assim?`, { confirmLabel: "Encerrar" }))) return;
     updateList(list.id, { totalSec: list.totalSec + spent() });
     finishList(useStore.getState().lists.find((l) => l.id === list.id)!);
     nav(`/questoes/resultado/${list.id}`, { replace: true });

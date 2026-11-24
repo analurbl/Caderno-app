@@ -97,7 +97,7 @@ export default function Goals() {
                     <button className="btn btn-ghost btn-sm" onClick={() => updateGoal(g.id, { paused: !g.paused })}>
                       {g.paused ? "Retomar" : "Pausar"}
                     </button>
-                    <button className="btn btn-ghost btn-sm" aria-label="Excluir meta" onClick={() => confirmAction("Excluir esta meta?") && removeGoal(g.id)}>
+                    <button className="btn btn-ghost btn-sm" aria-label="Excluir meta" onClick={async () => (await confirmAction("Excluir esta meta?")) && removeGoal(g.id)}>
                       <Icon name="trash" size={18} />
                     </button>
                   </div>

@@ -140,8 +140,8 @@ export function NotebookActions({ notebook, onClose, afterDelete }: { notebook: 
       </button>
       <button
         className="btn btn-danger btn-block"
-        onClick={() => {
-          if (confirmAction(`Excluir "${notebook.name}" com todas as matérias e assuntos? O tempo já estudado continua no seu histórico.`)) {
+        onClick={async () => {
+          if (await confirmAction(`Excluir "${notebook.name}" com todas as matérias e assuntos? O tempo já estudado continua no seu histórico.`)) {
             removeNotebook(notebook.id);
             onClose();
             afterDelete?.();

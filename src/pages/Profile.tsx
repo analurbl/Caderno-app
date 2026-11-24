@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { exportData, useStore } from "../store";
-import { Chips, Icon, Mascot, Toggle, TopBar, confirmAction } from "../components/ui";
+import { Chips, Icon, Mascot, Toggle, TopBar, confirmAction, showMessage } from "../components/ui";
 import { WEEKDAY_SHORT, fmtDuration, streak, sumSessions } from "../lib/time";
 import { PRIVACY, TERMS } from "./Welcome";
 import type { Preferences } from "../types";
@@ -28,11 +28,11 @@ export default function Profile() {
     try {
       const parsed = JSON.parse(await file.text());
       if (parsed?.app !== "caderno" || !parsed.data) throw new Error();
-      if (!confirmAction("Importar substituirá os dados de estudo atuais deste dispositivo. Continuar?")) return;
+      if (!(await confirmAction("Importar substituirá os dados de estudo atuais deste dispositivo. Continuar?"))) return;
       s.importData(parsed.data);
-      alert("Dados importados.");
+      await showMessage("Dados importados.", "Pronto");
     } catch {
-      alert("Arquivo inválido. Use um arquivo exportado pelo Caderno.");
+      await showMessage("Arquivo inválido. Use um arquivo exportado pelo Caderno.");
     }
   };
 
@@ -180,8 +180,8 @@ export default function Profile() {
           <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
           <button
             className="btn btn-danger btn-block"
-            onClick={() => {
-              if (confirmAction("Excluir sua conta e TODOS os dados deste dispositivo? Esta ação não pode ser desfeita. Considere exportar antes.")) {
+            onClick={async () => {
+              if (await confirmAction("Excluir sua conta e TODOS os dados deste dispositivo? Esta ação não pode ser desfeita. Considere exportar antes.")) {
                 s.deleteAllData();
                 nav("/bem-vindo", { replace: true });
               }
@@ -193,10 +193,10 @@ export default function Profile() {
 
         <section className="card stack">
           <h2 className="section-title">Ajuda</h2>
-          <button className="link-btn" style={{ textAlign: "left" }} onClick={() => alert(TERMS)}>
+          <button className="link-btn" style={{ textAlign: "left" }} onClick={() => showMessage(TERMS, "Termos de uso")}>
             Termos de uso
           </button>
-          <button className="link-btn" style={{ textAlign: "left" }} onClick={() => alert(PRIVACY)}>
+          <button className="link-btn" style={{ textAlign: "left" }} onClick={() => showMessage(PRIVACY, "Política de privacidade")}>
             Política de privacidade
           </button>
           <button className="link-btn" style={{ textAlign: "left" }} onClick={() => nav("/configurar")}>

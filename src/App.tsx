@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useStore } from "./store";
-import { BottomNav, Mascot, Sheet } from "./components/ui";
+import { BottomNav, Mascot, Sheet, confirmAction } from "./components/ui";
+import { DialogHost } from "./components/dialog";
 import { activeElapsed, fmtDuration } from "./lib/time";
 import Welcome from "./pages/Welcome";
 import { Login, SignUp } from "./pages/Auth";
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/entrar" element={<Login />} />
           <Route path="*" element={<Navigate to={account ? "/entrar" : "/bem-vindo"} replace />} />
         </Routes>
+        <DialogHost />
       </div>
     );
   }
@@ -76,6 +78,7 @@ export default function App() {
       </Routes>
       {!hideNav && <BottomNav studying={Boolean(active)} />}
       <RecoveryPrompt />
+      <DialogHost />
     </div>
   );
 }
@@ -167,10 +170,11 @@ function RecoveryPrompt() {
       <button
         className="btn btn-danger btn-block"
         onClick={() => {
-          if (window.confirm("Descartar esta sessão? O tempo não será registrado.")) {
+          void confirmAction("Descartar esta sessão? O tempo não será registrado.").then((ok) => {
+            if (!ok) return;
             discardSession();
             close();
-          }
+          });
         }}
       >
         Descartar sessão

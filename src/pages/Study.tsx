@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useStore } from "../store";
-import { Bar, Chips, Icon, Mascot, Sheet, TopBar } from "../components/ui";
+import { Bar, Chips, Icon, Mascot, Sheet, TopBar, confirmAction } from "../components/ui";
 import { useNow } from "../lib/hooks";
 import { activeElapsed, activePaused, addDays, fmtClock, fmtDuration, startOfDay, sumSessions } from "../lib/time";
 import { dailyTargetMin } from "../lib/stats";
@@ -241,8 +241,8 @@ function ActiveTimer({ contextSelectors, onFinished }: { contextSelectors: React
         <button
           className="link-btn small"
           style={{ color: "var(--bad)" }}
-          onClick={() => {
-            if (window.confirm("Descartar esta sessão? O tempo não será registrado.")) discardSession();
+          onClick={async () => {
+            if (await confirmAction("Descartar esta sessão? O tempo não será registrado.")) discardSession();
           }}
         >
           Descartar sessão

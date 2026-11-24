@@ -1,3 +1,7 @@
+/** Build de prévia estática (sem servidor): a IA não está disponível. */
+export const IS_PREVIEW = import.meta.env.VITE_PREVIEW === "1";
+const PREVIEW_MSG = "Esta é uma prévia sem servidor: a geração de questões por IA funciona quando o app roda com o servidor e a chave da IA configurada.";
+
 import type { Alternative, Banca, Dificuldade, Formato, Question } from "../types";
 
 export interface GeneratePayload {
@@ -20,6 +24,7 @@ export interface GenerateResult {
 }
 
 async function post<T>(url: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  if (IS_PREVIEW) throw new Error(PREVIEW_MSG);
   let res: Response;
   try {
     res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });

@@ -2,7 +2,7 @@ import { cloneElement, useId, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../store";
 import { sha256 } from "../lib/api";
-import { Mascot, TopBar } from "../components/ui";
+import { Mascot, TopBar, askText, confirmAction, showMessage } from "../components/ui";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -32,7 +32,7 @@ export function SignUp() {
     const e = validate(form);
     setErrors(e);
     if (Object.keys(e).length) return;
-    if (existing && !window.confirm("Já existe uma conta neste dispositivo. Criar uma nova apaga a anterior e seus dados. Continuar?")) return;
+    if (existing && !(await confirmAction("Já existe uma conta neste dispositivo. Criar uma nova apaga a anterior e seus dados. Continuar?", { danger: true }))) return;
     if (existing) useStore.getState().deleteAllData();
     signUp({ name: form.name.trim(), email: form.email.trim().toLowerCase(), passwordHash: await sha256(form.password), createdAt: Date.now() });
     nav("/configurar", { replace: true });
@@ -102,17 +102,17 @@ export function Login() {
   };
 
   const resetPassword = async () => {
-    const pwd = window.prompt("Como os dados ficam apenas neste dispositivo, você pode definir uma nova senha aqui. Nova senha (mínimo 6 caracteres):");
+    const pwd = await askText("Nova senha", "", { message: "Como os dados ficam apenas neste dispositivo, você pode definir uma nova senha aqui (mínimo 6 caracteres)." });
     if (!pwd) return;
     if (pwd.length < 6) {
-      alert("A senha precisa ter pelo menos 6 caracteres.");
+      await showMessage("A senha precisa ter pelo menos 6 caracteres.");
       return;
     }
     if (!account) return;
     useStore.setState({ account: { ...account, passwordHash: await sha256(pwd) } });
     setShowRecovery(false);
     setError("");
-    alert("Senha redefinida. Entre com a nova senha.");
+    await showMessage("Senha redefinida. Entre com a nova senha.", "Pronto");
   };
 
   return (

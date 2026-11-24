@@ -151,7 +151,7 @@ export default function ErrorBook() {
             </button>
             <div className="list">
               {filtered.map((e) => (
-                <ErrorCard key={e.id} e={e} selected={selected.has(e.id)} onSelect={() => toggleSel(e.id)} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} subjectName={subjects.find((x) => x.id === e.subjectId)?.name} onUpdate={(p) => updateError(e.id, p)} onRemove={() => confirmAction("Remover esta questão do caderno de erros?") && removeError(e.id)} />
+                <ErrorCard key={e.id} e={e} selected={selected.has(e.id)} onSelect={() => toggleSel(e.id)} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} subjectName={subjects.find((x) => x.id === e.subjectId)?.name} onUpdate={(p) => updateError(e.id, p)} onRemove={async () => (await confirmAction("Remover esta questão do caderno de erros?")) && removeError(e.id)} />
               ))}
             </div>
           </>
