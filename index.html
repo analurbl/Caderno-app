@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bioética em Casos</title>
+<meta name="description" content="Leia o QR code, analise o caso e diga quais princípios da bioética foram respeitados ou feridos.">
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #ffffff; --ink: #1d1f24; --muted: #5d6470; --line: #e2ded4;
+    --accent: #2f6f5e; --accent-ink: #ffffff; --ok: #1f7a4a; --ok-bg: #e5f4ea;
+    --bad: #b3362d; --bad-bg: #fbe8e6; --warn-bg: #fff4dc; --chip: #efebe2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171b; --card: #1e2126; --ink: #eceae5; --muted: #a2a8b2; --line: #30343b;
+      --accent: #5bb39a; --accent-ink: #0d1512; --ok: #6fd39c; --ok-bg: #18301f;
+      --bad: #f08b80; --bad-bg: #3a1d1a; --warn-bg: #33291a; --chip: #2a2e34;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 64px; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 8px 0 4px; }
+  h2 { font-size: 1.2rem; margin: 0 0 8px; }
+  .muted { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin: 14px 0; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: .9rem; }
+  .top a { text-decoration: none; }
+  .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .principles div { background: var(--chip); border-radius: 10px; padding: 10px 12px; font-size: .92rem; }
+  .principles b { display: block; }
+  .case-list { list-style: none; padding: 0; margin: 0; }
+  .case-list a { display: block; padding: 14px 4px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+  .case-list a:last-child { border-bottom: 0; }
+  .case-list small { color: var(--muted); display: block; }
+  .tag { display: inline-block; font-size: .78rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--accent); }
+  .story p { margin: 0 0 10px; }
+  fieldset { border: 0; margin: 0; padding: 14px 0; border-top: 1px solid var(--line); }
+  fieldset:first-of-type { border-top: 0; padding-top: 0; }
+  legend { font-weight: 700; padding: 0; margin-bottom: 8px; float: left; width: 100%; }
+  legend + * { clear: both; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .seg label { position: relative; }
+  .seg input { position: absolute; opacity: 0; inset: 0; }
+  .seg span { display: block; text-align: center; padding: 10px 4px; border: 1px solid var(--line); border-radius: 10px;
+    font-size: .9rem; cursor: pointer; user-select: none; background: var(--card); }
+  .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .seg input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .seg input:disabled + span { cursor: default; }
+  textarea { width: 100%; min-height: 90px; border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+    font: inherit; background: var(--card); color: var(--ink); resize: vertical; }
+  button, .btn { appearance: none; border: 0; border-radius: 10px; padding: 12px 18px; font: inherit; font-weight: 600;
+    background: var(--accent); color: var(--accent-ink); cursor: pointer; text-decoration: none; display: inline-block; }
+  button.secondary, .btn.secondary { background: var(--chip); color: var(--ink); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .fb { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: .94rem; }
+  .fb.ok { background: var(--ok-bg); }
+  .fb.bad { background: var(--bad-bg); }
+  .fb strong.ok { color: var(--ok); } .fb strong.bad { color: var(--bad); }
+  .score { font-size: 1.15rem; font-weight: 700; }
+  .note { background: var(--warn-bg); border-radius: 10px; padding: 10px 12px; font-size: .9rem; }
+  .err { color: var(--bad); font-size: .92rem; }
+  .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .qr-card { background: #fff; color: #111; border: 1px solid #ddd; border-radius: 12px; padding: 14px; text-align: center; break-inside: avoid; }
+  .qr-card svg { width: 100%; max-width: 200px; height: auto; display: block; margin: 8px auto; }
+  .qr-card .url { font-size: .7rem; word-break: break-all; color: #555; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row input { flex: 1 1 240px; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font: inherit; background: var(--card); color: var(--ink); }
+  @media print {
+    body { background: #fff; } .no-print { display: none !important; }
+    main { max-width: none; padding: 0; } .qr-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script src="qrcode.js"></script>
+<script>
+/* ==========================================================
+   CASOS — edite aqui. Para cada princípio, o gabarito é:
+   "respeitado", "ferido" ou "foco" (não é o foco do caso).
+   ========================================================== */
+const PRINCIPIOS = [
+  { id: "autonomia", nome: "Autonomia", def: "Respeitar a decisão livre e informada da pessoa sobre o próprio corpo e tratamento." },
+  { id: "beneficencia", nome: "Beneficência", def: "Agir para promover o bem e o melhor interesse do paciente." },
+  { id: "naoMaleficencia", nome: "Não maleficência", def: "Não causar dano; evitar riscos e sofrimentos desnecessários." },
+  { id: "justica", nome: "Justiça", def: "Distribuir recursos e cuidados com equidade, conforme a necessidade." }
+];
+
+const OPCOES = [
+  { v: "respeitado", t: "Respeitado" },
+  { v: "ferido", t: "Ferido" },
+  { v: "foco", t: "Não é o foco" }
+];
+
+const CASOS = [
+  {
+    titulo: "Espera na UPA",
+    tema: "Acesso e prioridade",
+    texto: [
+      "Numa UPA lotada, a recepção atende por ordem de chegada, sem classificação de risco. Seu Antônio, 62 anos, chega com dor forte no peito, suando frio, e recebe a senha 48.",
+      "Ele espera quase duas horas atrás de pessoas com resfriado e pequenos cortes. Quando é atendido, o eletrocardiograma mostra um infarto, e o tratamento começa tarde, com mais sequelas."
+    ],
+    gabarito: {
+      autonomia: ["foco", "O caso não trata de uma decisão do paciente sendo ignorada; o problema está na organização do atendimento."],
+      beneficencia: ["ferido", "O serviço deixou de agir no melhor interesse de quem mais precisava de cuidado imediato."],
+      naoMaleficencia: ["ferido", "A demora evitável aumentou o dano ao paciente (mais sequelas do infarto)."],
+      justica: ["ferido", "Equidade é tratar de forma diferente necessidades diferentes. Ordem de chegada para casos de gravidade diferente não é justa; a classificação de risco existe para isso."]
+    }
+  },
+  {
+    titulo: "Exames por precaução",
+    tema: "Risco e consentimento",
+    texto: [
+      "Dona Lúcia, 78 anos, procura o ambulatório de um hospital público por cansaço leve. Sem indicação clínica clara, o médico pede vários exames, incluindo um cateterismo, \"só para garantir\".",
+      "Ele não explica os riscos do procedimento, e ela assina o termo sem entender. A fila para cateterismo no hospital é de três meses. Durante o exame, Dona Lúcia tem um sangramento na virilha e fica internada uma semana."
+    ],
+    gabarito: {
+      autonomia: ["ferido", "Assinar sem entender não é consentimento informado: os riscos e as alternativas precisavam ser explicados de forma clara."],
+      beneficencia: ["ferido", "Um procedimento invasivo sem indicação não traz benefício esperado que justifique o risco."],
+      naoMaleficencia: ["ferido", "Ela foi exposta a um risco desnecessário, e o dano aconteceu."],
+      justica: ["ferido", "Uma vaga escassa do SUS foi usada sem indicação, enquanto outros pacientes com indicação esperam na fila."]
+    }
+  },
+  {
+    titulo: "O diagnóstico escondido",
+    tema: "Verdade e paternalismo",
+    texto: [
+      "Marta, 54 anos, lúcida e professora aposentada, recebe o diagnóstico de câncer de pâncreas. A pedido dos filhos, a equipe combina não contar nada a ela: \"ela é muito sensível, vai sofrer\".",
+      "Os filhos decidem o tratamento. Marta pergunta várias vezes por que está tão cansada e ouve que \"é só anemia\". Ela tinha planos de viajar para ver a irmã e de organizar seus documentos."
+    ],
+    gabarito: {
+      autonomia: ["ferido", "Marta é capaz de decidir e perguntou diretamente. Esconder o diagnóstico e deixar os filhos escolherem tira dela o direito de decidir sobre a própria vida."],
+      beneficencia: ["ferido", "A intenção era protegê-la, mas isso é paternalismo: o bem dela, como ela mesma o definiria (viajar, organizar a vida), foi deixado de lado."],
+      naoMaleficencia: ["ferido", "Mentir quebra a confiança e causa dano: ela perde tempo e escolhas que não voltam."],
+      justica: ["foco", "Não há disputa por recursos nem tratamento desigual entre pacientes neste caso."]
+    }
+  },
+  {
+    titulo: "Poucas doses de vacina",
+    tema: "Distribuição de recursos",
+    texto: [
+      "Uma unidade básica recebe menos doses de uma vacina nova do que a população precisa. A equipe segue os critérios técnicos do Ministério da Saúde: primeiro idosos, pessoas com doenças crônicas e profissionais de saúde.",
+      "Cada pessoa recebe informações sobre benefícios e efeitos colaterais e decide se quer se vacinar. Quem tem dúvidas conversa com a enfermeira. Os efeitos adversos são acompanhados e notificados."
+    ],
+    gabarito: {
+      autonomia: ["respeitado", "A vacinação é oferecida com informação, e cada pessoa decide se aceita."],
+      beneficencia: ["respeitado", "As doses vão para quem tem mais a ganhar com a proteção."],
+      naoMaleficencia: ["respeitado", "Os riscos são informados e os efeitos adversos são acompanhados e notificados."],
+      justica: ["respeitado", "Recursos escassos foram distribuídos por critérios públicos e técnicos, priorizando quem tem maior risco: isso é equidade."]
+    }
+  },
+  {
+    titulo: "A pesquisa na comunidade",
+    tema: "Ética em pesquisa",
+    texto: [
+      "Um pesquisador testa um medicamento experimental numa comunidade pobre. Ele oferece R$ 300 a quem participar, valor alto para as famílias do bairro.",
+      "O termo de consentimento tem 12 páginas em linguagem técnica e ninguém explica os riscos. Quando alguns participantes passam mal, não há equipe para acompanhar, e o projeto não passou por um Comitê de Ética em Pesquisa."
+    ],
+    gabarito: {
+      autonomia: ["ferido", "Sem explicação compreensível não há consentimento livre e esclarecido; o pagamento alto também pressiona a decisão de quem tem pouco dinheiro."],
+      beneficencia: ["ferido", "Os participantes não têm acompanhamento nem garantia de cuidado; a pesquisa não está organizada em favor deles."],
+      naoMaleficencia: ["ferido", "Riscos não informados, sem avaliação ética e sem assistência a quem passa mal."],
+      justica: ["ferido", "Uma população vulnerável carrega os riscos da pesquisa. No Brasil, a Resolução CNS 466/2012 exige aprovação em Comitê de Ética e permite ressarcir despesas, não pagar pela participação."]
+    }
+  },
+  {
+    titulo: "Cuidados no fim da vida",
+    tema: "Cuidados paliativos",
+    texto: [
+      "Seu José, 81 anos, tem insuficiência cardíaca avançada. Lúcido, ele registrou em prontuário suas diretivas antecipadas: não quer ser intubado nem ir para a UTI se o quadro se tornar irreversível.",
+      "Quando isso acontece, a equipe conversa com ele e com a família, respeita a decisão e foca em aliviar a falta de ar e a dor, com a família por perto."
+    ],
+    gabarito: {
+      autonomia: ["respeitado", "A vontade dele, expressa com antecedência e de forma lúcida, foi seguida (Resolução CFM 1.995/2012)."],
+      beneficencia: ["respeitado", "O cuidado foi direcionado ao conforto e ao que importava para ele."],
+      naoMaleficencia: ["respeitado", "Evitou-se a distanásia: procedimentos invasivos que prolongariam o sofrimento sem chance de recuperação."],
+      justica: ["foco", "O caso não trata de divisão de recursos nem de desigualdade de acesso."]
+    }
+  }
+];
+
+/* ========================== App ========================== */
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const rotulo = v => (OPCOES.find(o => o.v === v) || {}).t;
+
+function store(get, key, val) {
+  try { return get ? localStorage.getItem(key) : localStorage.setItem(key, val); } catch (e) { return null; }
+}
+
+function baseUrl() {
+  const salvo = store(true, "bioetica-base");
+  if (salvo) return salvo;
+  return location.href.split("#")[0];
+}
+
+function render() {
+  const h = location.hash;
+  const m = h.match(/^#\/caso\/(\d+)/);
+  if (m && CASOS[+m[1] - 1]) return renderCaso(+m[1]);
+  if (h.startsWith("#/qrcodes")) return renderQR();
+  renderInicio();
+}
+
+function principiosHtml() {
+  return `<div class="principles">${PRINCIPIOS.map(p => `<div><b>${p.nome}</b>${p.def}</div>`).join("")}</div>`;
+}
+
+function renderInicio() {
+  document.title = "Bioética em Casos";
+  app.innerHTML = `
+    <span class="tag">Bioética</span>
+    <h1>Bioética em casos</h1>
+    <p class="muted">Leia o QR code do caso, analise a situação e diga se cada princípio foi respeitado ou ferido.</p>
+    <section class="card"><h2>Os quatro princípios</h2>${principiosHtml()}</section>
+    <section class="card"><h2>Casos</h2>
+      <ul class="case-list">${CASOS.map((c, i) => `
+        <li><a href="#/caso/${i + 1}"><b>Caso ${i + 1}: ${esc(c.titulo)}</b><small>${esc(c.tema)}</small></a></li>`).join("")}
+      </ul>
+    </section>
+    <p class="no-print"><a href="#/qrcodes">Professor: imprimir QR codes dos casos</a></p>`;
+}
+
+function renderCaso(n) {
+  const c = CASOS[n - 1];
+  document.title = `Caso ${n}: ${c.titulo}`;
+  app.innerHTML = `
+    <div class="top"><a href="#/">← Todos os casos</a><span class="muted">Caso ${n} de ${CASOS.length}</span></div>
+    <span class="tag">${esc(c.tema)}</span>
+    <h1>${esc(c.titulo)}</h1>
+    <section class="card story">${c.texto.map(p => `<p>${esc(p)}</p>`).join("")}</section>
+    <form class="card" id="form" novalidate>
+      <h2>Como ficou cada princípio?</h2>
+      ${PRINCIPIOS.map(p => `
+        <fieldset data-p="${p.id}">
+          <legend>${p.nome}</legend>
+          <div class="seg">${OPCOES.map(o => `
+            <label><input type="radio" name="${p.id}" value="${o.v}"><span>${o.t}</span></label>`).join("")}
+          </div>
+          <div class="fb-slot"></div>
+        </fieldset>`).join("")}
+      <fieldset>
+        <legend><label for="just">Justifique sua resposta (opcional)</label></legend>
+        <textarea id="just" placeholder="Qual princípio pesa mais neste caso, e por quê?"></textarea>
+      </fieldset>
+      <p class="err" id="err" hidden>Responda os quatro princípios antes de ver a correção.</p>
+      <div class="actions"><button type="submit">Ver correção</button></div>
+    </form>
+    <div id="result"></div>`;
+
+  document.getElementById("form").addEventListener("submit", e => {
+    e.preventDefault();
+    const form = e.target;
+    const resp = {};
+    for (const p of PRINCIPIOS) {
+      const sel = form.querySelector(`input[name="${p.id}"]:checked`);
+      if (!sel) { document.getElementById("err").hidden = false; form.querySelector(`[data-p="${p.id}"]`).scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      resp[p.id] = sel.value;
+    }
+    document.getElementById("err").hidden = true;
+    let acertos = 0;
+    for (const p of PRINCIPIOS) {
+      const [certo, explica] = c.gabarito[p.id];
+      const ok = resp[p.id] === certo;
+      if (ok) acertos++;
+      form.querySelector(`[data-p="${p.id}"] .fb-slot`).innerHTML = `
+        <div class="fb ${ok ? "ok" : "bad"}">
+          <strong class="${ok ? "ok" : "bad"}">${ok ? "Correto" : "Revise"}: ${rotulo(certo)}.</strong>
+          ${ok ? "" : `Você marcou "${rotulo(resp[p.id])}". `}${esc(explica)}
+        </div>`;
+    }
+    form.querySelectorAll("input, textarea").forEach(el => el.disabled = true);
+    form.querySelector(".actions").remove();
+    const prox = n < CASOS.length ? `<a class="btn" href="#/caso/${n + 1}">Próximo caso</a>` : "";
+    document.getElementById("result").innerHTML = `
+      <section class="card">
+        <p class="score">Você acertou ${acertos} de ${PRINCIPIOS.length}.</p>
+        <p class="note">Este é um gabarito sugerido para discussão: em bioética, bons argumentos podem levar a conclusões diferentes. Leve sua justificativa para o debate em sala.</p>
+        <div class="actions">${prox}<button class="secondary" type="button" id="again">Responder de novo</button></div>
+      </section>`;
+    document.getElementById("again").onclick = () => { renderCaso(n); window.scrollTo(0, 0); };
+    document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+  });
+}
+
+function qrSvg(texto) {
+  if (typeof qrcode !== "function") return null;
+  const q = qrcode(0, "M");
+  q.addData(texto);
+  q.make();
+  return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+}
+
+function renderQR() {
+  document.title = "QR codes dos casos";
+  const base = baseUrl();
+  const local = !/^https?:/.test(base);
+  app.innerHTML = `
+    <div class="top no-print"><a href="#/">← Início</a></div>
+    <h1 class="no-print">QR codes dos casos</h1>
+    <section class="card no-print">
+      <p class="muted">Cada QR code abre um caso. Confira o endereço do site publicado abaixo e imprima esta página.</p>
+      ${local ? `<p class="note">Este arquivo está aberto no computador, não num site. Publique o site e cole o endereço dele aqui, senão os QR codes não abrem no celular dos alunos.</p>` : ""}
+      <div class="row">
+        <input id="base" value="${esc(base)}" aria-label="Endereço do site">
+        <button type="button" id="save">Atualizar</button>
+      </div>
+      <div class="actions"><button type="button" onclick="window.print()">Imprimir</button></div>
+    </section>
+    <div class="qr-grid">${CASOS.map((c, i) => {
+      const url = `${base}#/caso/${i + 1}`;
+      const svg = qrSvg(url);
+      return `<div class="qr-card"><b>Caso ${i + 1}</b><div>${esc(c.titulo)}</div>
+        ${svg || `<p class="err">Não foi possível gerar o QR code (sem internet?).</p>`}
+        <div class="url">${esc(url)}</div></div>`;
+    }).join("")}</div>`;
+  document.getElementById("save").onclick = () => {
+    let v = document.getElementById("base").value.trim().split("#")[0];
+    store(false, "bioetica-base", v);
+    renderQR();
+  };
+}
+
+window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
+render();
+</script>
+</body>
+</html>
