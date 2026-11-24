@@ -66,3 +66,26 @@ describe("agregações", () => {
     expect(weakPoints([e("A", "pendente"), e("A", "revisada"), e("B", "dominada"), e("C", "pendente")])).toEqual(["A", "C"]);
   });
 });
+
+import { normalizeResult } from "../src/lib/api";
+
+describe("resposta da IA", () => {
+  it("descarta questões sem gabarito válido e completa campos", () => {
+    const r = normalizeResult(
+      {
+        questoes: [
+          { enunciado: "Q1", alternativas: [{ letra: "a", texto: "x" }, { letra: "B", texto: "y" }], correta: "b" },
+          { enunciado: "Q2", alternativas: [{ letra: "A", texto: "x" }], correta: "C" },
+          { enunciado: "", alternativas: [], correta: "A" },
+        ],
+      },
+      "multipla",
+    );
+    expect(r.questoes).toHaveLength(1);
+    expect(r.questoes[0]).toMatchObject({ correta: "B", assunto: "Geral", dificuldade: "intermediaria", base: "conhecimento_geral" });
+    expect(r.aviso_material).toBe("");
+  });
+  it("aceita discursiva sem alternativas", () => {
+    expect(normalizeResult({ questoes: [{ enunciado: "Explique.", resposta_esperada: "R" }] }, "discursiva").questoes).toHaveLength(1);
+  });
+});

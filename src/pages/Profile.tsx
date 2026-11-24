@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { exportData, useStore } from "../store";
 import { Chips, Icon, Mascot, Toggle, TopBar, confirmAction, showMessage } from "../components/ui";
+import { saveFile } from "../lib/api";
 import { WEEKDAY_SHORT, fmtDuration, streak, sumSessions } from "../lib/time";
 import { PRIVACY, TERMS } from "./Welcome";
 import type { Preferences } from "../types";
@@ -14,14 +15,12 @@ export default function Profile() {
   const p = s.prefs;
   const setN = (n: Partial<Preferences["notifications"]>) => s.setPrefs({ notifications: { ...p.notifications, ...n } });
 
-  const download = () => {
-    const blob = new Blob([exportData()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `caderno-dados-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const download = async () => {
+    try {
+      await saveFile(`caderno-dados-${new Date().toISOString().slice(0, 10)}.json`, exportData());
+    } catch (e) {
+      await showMessage((e as Error).message);
+    }
   };
 
   const importFile = async (file: File) => {

@@ -194,9 +194,9 @@ export default function QuestionsHub() {
         )}
 
         {IS_PREVIEW && (
-          <div className="banner warn small">
-            <Icon name="alert" />
-            <span>Prévia: aqui você pode montar a lista, mas gerar questões exige rodar o app com o servidor e a chave da IA.</span>
+          <div className="banner small">
+            <Icon name="spark" />
+            <span>As questões são geradas pelo Claude usando a sua conta. Na primeira vez, o Claude pede sua permissão.</span>
           </div>
         )}
         <section className="card stack">

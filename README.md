@@ -26,6 +26,10 @@ Outros comandos: `npm test` (testes de unidade), `npm run typecheck`.
 
 Sem `ANTHROPIC_API_KEY`, todo o app funciona, exceto a geração de questões e as explicações extras, que mostram uma mensagem clara de erro.
 
+### Versão hospedada no Claude
+
+`npm run build:preview` gera uma versão sem servidor, publicada como página no Claude. Nela, as questões e explicações são pedidas ao Claude pela conta de quem usa o app (com permissão pedida na primeira vez), usando os mesmos prompts do servidor (`src/lib/prompts.ts`). A resposta é conferida em `normalizeResult` antes de virar uma lista.
+
 ## Arquitetura
 
 | Parte | Tecnologia | Onde |
