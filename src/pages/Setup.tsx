@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store";
 import { Chips, Mascot } from "../components/ui";
+import { KitCard } from "../components/KitCard";
 import { WEEKDAY_SHORT, fmtDuration } from "../lib/time";
 import type { Preferences } from "../types";
 
@@ -145,6 +146,7 @@ export default function Setup() {
           <div key={i} style={{ flex: 1, height: 6, borderRadius: 9, background: i <= step ? "var(--lilac)" : "var(--track)" }} />
         ))}
       </div>
+      {step === 0 && <KitCard onApplied={() => nav("/", { replace: true })} />}
       <Mascot mood={s.mood} size={76} />
       <h1 className="big-title">{s.title}</h1>
       <div className="stack">{s.body}</div>

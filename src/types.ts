@@ -32,6 +32,7 @@ export interface Preferences {
     achievements: boolean;
   };
   setupDone: boolean;
+  appliedKits: string[];
 }
 
 export interface Notebook {

@@ -4,6 +4,7 @@ import { Bar, Empty, Icon, Mascot, Ring } from "../components/ui";
 import { addDays, fmtDuration, fmtLongDate, greeting, startOfDay, startOfWeek, streak, sumSessions, daysUntil } from "../lib/time";
 import { dailyMessage, dailyTargetMin, goalProgress, reviewsDue, suggestion } from "../lib/stats";
 import { useNow } from "../lib/hooks";
+import { KitCard } from "../components/KitCard";
 import { activeElapsed } from "../lib/time";
 
 export default function Home() {
@@ -46,6 +47,8 @@ export default function Home() {
           <Mascot mood="foco" size={40} />
         </Link>
       </header>
+
+      <KitCard />
 
       {activeNotebooks.length === 0 ? (
         <div className="card">

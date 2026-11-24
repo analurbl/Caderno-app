@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { exportData, useStore } from "../store";
 import { Chips, Icon, Mascot, Toggle, TopBar, confirmAction, showMessage } from "../components/ui";
 import { saveFile } from "../lib/api";
+import { isKit } from "../lib/kit";
+import { KitCard } from "../components/KitCard";
 import { WEEKDAY_SHORT, fmtDuration, streak, sumSessions } from "../lib/time";
 import { PRIVACY, TERMS } from "./Welcome";
 import type { Preferences } from "../types";
@@ -26,12 +28,18 @@ export default function Profile() {
   const importFile = async (file: File) => {
     try {
       const parsed = JSON.parse(await file.text());
+      if (isKit(parsed)) {
+        if (!(await confirmAction(`Adicionar o plano "${parsed.title}" ao que você já tem? Nada do que existe será apagado.`, { title: "Carregar plano", confirmLabel: "Adicionar" }))) return;
+        s.applyKit(parsed);
+        await showMessage("Plano carregado.", "Pronto");
+        return;
+      }
       if (parsed?.app !== "caderno" || !parsed.data) throw new Error();
       if (!(await confirmAction("Importar substituirá os dados de estudo atuais deste dispositivo. Continuar?"))) return;
       s.importData(parsed.data);
       await showMessage("Dados importados.", "Pronto");
     } catch {
-      await showMessage("Arquivo inválido. Use um arquivo exportado pelo Caderno.");
+      await showMessage("Arquivo inválido. Use um arquivo exportado pelo Caderno ou um plano de estudos.");
     }
   };
 
@@ -165,6 +173,8 @@ export default function Profile() {
           />
           <Toggle checked={p.reduceMotion} onChange={(v) => s.setPrefs({ reduceMotion: v })} label="Reduzir animações" hint="O app também segue a configuração do sistema." />
         </section>
+
+        <KitCard />
 
         <section className="card stack">
           <h2 className="section-title">Privacidade e dados</h2>

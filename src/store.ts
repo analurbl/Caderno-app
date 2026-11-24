@@ -16,9 +16,10 @@ import type {
   Topic,
 } from "./types";
 import { activeElapsed, activePaused, uid } from "./lib/time";
+import { kitToRecords, type StudyKit } from "./lib/kit";
 
 export const NOTEBOOK_COLORS = ["#A879E8", "#F3B8CF", "#F7DF83", "#A9DED2", "#B9D0F2", "#F29A91"];
-export const NOTEBOOK_ICONS = ["📘", "⚖️", "🧠", "🫀", "🧮", "✍️", "🌎", "💼", "🔬", "🏛️", "💡", "📐"];
+export const NOTEBOOK_ICONS = ["📘", "🩺", "⚖️", "🧠", "🫀", "🧮", "✍️", "🌎", "💼", "🔬", "🏛️", "💡", "📐"];
 
 export const defaultPreferences: Preferences = {
   objetivo: "",
@@ -39,6 +40,7 @@ export const defaultPreferences: Preferences = {
     achievements: true,
   },
   setupDone: false,
+  appliedKits: [],
 };
 
 export interface State {
@@ -63,6 +65,7 @@ interface Actions {
   logOut(): void;
   deleteAllData(): void;
   importData(data: Partial<State>): void;
+  applyKit(kit: StudyKit): void;
   setPrefs(p: Partial<Preferences>): void;
 
   addNotebook(n: Partial<Notebook> & { name: string }): ID;
@@ -145,6 +148,38 @@ export const useStore = create<State & Actions>()(
           account: s.account,
           loggedIn: s.loggedIn,
         })),
+      applyKit: (kit) =>
+        set((s) => {
+          const r = kitToRecords(kit);
+          const has = <T extends { id: string }>(list: T[]) => {
+            const ids = new Set(list.map((x) => x.id));
+            return (x: { id: string }) => !ids.has(x.id);
+          };
+          const firstTime = !s.prefs.appliedKits.includes(kit.id);
+          const reviewIds = new Set(s.reviews.map((x) => x.id));
+          const goalIds = new Set(s.goals.map((x) => x.id));
+          const now = Date.now();
+          return {
+            notebooks: [...s.notebooks, ...r.notebooks.filter(has(s.notebooks)).map((n, i) => ({ ...n, order: s.notebooks.length + i }))],
+            subjects: [...s.subjects, ...r.subjects.filter(has(s.subjects))],
+            topics: [...s.topics, ...r.topics.filter(has(s.topics))],
+            sessions: [...s.sessions, ...r.sessions.filter(has(s.sessions))],
+            goals: [
+              ...s.goals,
+              ...(kit.goals ?? [])
+                .filter((g) => !goalIds.has(g.id))
+                .map((g) => ({ id: g.id, type: g.type, target: g.target, subjectId: g.subjectId, days: g.days ?? s.prefs.studyDays, paused: false, createdAt: now, history: [{ changedAt: now, target: g.target }] })),
+            ],
+            reviews: [...s.reviews, ...(kit.reviews ?? []).filter((x) => !reviewIds.has(x.id)).map((x) => ({ ...x, done: false }))],
+            // As preferências do plano só entram na primeira vez, para não desfazer ajustes posteriores.
+            prefs: {
+              ...s.prefs,
+              ...(firstTime ? kit.prefs ?? {} : {}),
+              setupDone: true,
+              appliedKits: firstTime ? [...s.prefs.appliedKits, kit.id] : s.prefs.appliedKits,
+            },
+          };
+        }),
       setPrefs: (p) => set((s) => ({ prefs: { ...s.prefs, ...p } })),
 
       /* Cadernos */
