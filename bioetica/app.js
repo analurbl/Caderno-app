@@ -250,6 +250,7 @@ function renderRodada(jogo, n) {
       </section>`;
     document.getElementById("seguir").onclick = () => { renderJogo(); window.scrollTo(0, 0); };
     const st = await enviarPontuacao(jogo, n);
+    if (st === "ok") { marcarEnviado(jogo, n); sincronizar(); }
     const el = document.getElementById("envio");
     if (el && st === "ok") el.textContent = "Pontuação enviada para o ranking.";
     if (el && st === "erro") el.textContent = "Não foi possível enviar agora; a pontuação será enviada no próximo caso.";
@@ -347,5 +348,34 @@ function renderQR() {
   };
 }
 
+/* ---------- envio do que ficou guardado no celular ----------
+   Jogos feitos sem internet, ou antes de o ranking ser ligado, ficam guardados
+   neste aparelho. Ao abrir o site, as respostas que ainda não chegaram à
+   planilha são enviadas, uma por caso. */
+function marcarEnviado(jogo, n) {
+  const atual = lerLocal("bioetica-jogo");
+  if (!atual || atual.id !== jogo.id) return;
+  atual.enviados = Array.from(new Set([...(atual.enviados || []), n]));
+  jogo.enviados = atual.enviados;
+  gravarLocal("bioetica-jogo", atual);
+}
+
+let sincronizando = false;
+async function sincronizar() {
+  if (!RANKING_URL || sincronizando) return;
+  const jogo = lerLocal("bioetica-jogo");
+  if (!jogo || !jogo.respostas) return;
+  const faltam = Object.keys(jogo.respostas).map(Number).filter(n => !(jogo.enviados || []).includes(n)).sort((a, b) => a - b);
+  if (!faltam.length) return;
+  sincronizando = true;
+  try {
+    for (const n of faltam) {
+      if (await enviarPontuacao(jogo, n) !== "ok") break;
+      marcarEnviado(jogo, n);
+    }
+  } finally { sincronizando = false; }
+}
+
 window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
 render();
+sincronizar();
