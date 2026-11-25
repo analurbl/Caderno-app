@@ -20,6 +20,8 @@
   ol { margin:8px 0 0; padding-left:20px; }
   li { margin:4px 0; }
   .muted { color:var(--muted); font-size:.9rem; }
+  button.link { font:inherit; font-weight:700; color:var(--accent); background:none; border:none; padding:0; text-decoration:underline; cursor:pointer; }
+  [hidden] { display:none !important; }
   a.btn { display:block; text-align:center; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; padding:14px; border-radius:16px; }
 </style>
 </head>
@@ -29,11 +31,12 @@
   <p>Este é o atalho do Lumio para a tela inicial do celular. Ao tocar no ícone, o app abre no Claude.</p>
   <div class="card">
     <strong>iPhone (Safari)</strong>
-    <ol><li>Toque em Compartilhar (quadrado com seta).</li><li>Escolha <b>Adicionar à Tela de Início</b> e confirme.</li></ol>
+    <ol><li>Toque em <button id="ios" type="button" class="link">Preparar atalho</button>.</li><li>Toque em Compartilhar (quadrado com seta).</li><li>Escolha <b>Adicionar à Tela de Início</b> e confirme.</li></ol>
+    <p id="ios-ok" class="muted" hidden>Pronto. Agora é só adicionar à Tela de Início.</p>
   </div>
   <div class="card">
     <strong>Android (Chrome)</strong>
-    <ol><li>Toque no menu ⋮.</li><li>Escolha <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b> → <b>Instalar</b>) e confirme.</li></ol>
+    <ol><li>Confira que o endereço acima é <b>analurbl.github.io</b> (não claude.ai).</li><li>Toque no menu ⋮ e escolha <b>Adicionar à tela inicial</b> → <b>Instalar</b>.</li><li>Na confirmação deve aparecer o caderno com estrela e o nome <b>Lumio</b>.</li></ol>
   </div>
   <a class="btn" id="open" href="#">Abrir o Lumio agora</a>
   <p class="muted">Você precisa estar com a conta do Claude conectada no navegador. Seus dados continuam no Lumio dentro do Claude.</p>
@@ -41,15 +44,23 @@
 <script>
   var APP = "https://claude.ai/artifact/FqAFfzcMRxNHZNy3yqsdmP";
   document.getElementById("open").href = APP;
-  var params = new URLSearchParams(location.search);
-  if (params.has("abrir")) {
-    // Aberto pelo ícone da tela inicial: vai direto para o app.
+  var mode = new URLSearchParams(location.search).get("abrir");
+  var installed = ["standalone", "minimal-ui", "fullscreen"].some(function (m) {
+    return window.matchMedia("(display-mode: " + m + ")").matches;
+  });
+  // Vai direto para o app só quando aberto pelo ícone:
+  // - Android: o app instalado abre em modo de app (start_url ?abrir=1);
+  // - iPhone: o atalho guarda o endereço ?abrir=ios, preparado pelo botão abaixo.
+  // Num endereço ?abrir=1 aberto numa aba comum (ex.: pelo histórico), a página aparece normalmente.
+  if ((mode === "1" && installed) || mode === "ios") {
     location.replace(APP);
   } else {
-    // O endereço salvo no atalho passa a ser o que abre o app direto.
-    history.replaceState(null, "", location.pathname + "?abrir=1");
-    // Necessário para o Chrome oferecer "Instalar app" com o ícone do Lumio.
+    if (mode) history.replaceState(null, "", location.pathname);
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+    document.getElementById("ios").addEventListener("click", function () {
+      history.replaceState(null, "", location.pathname + "?abrir=ios");
+      document.getElementById("ios-ok").hidden = false;
+    });
   }
 </script>
 </body>
