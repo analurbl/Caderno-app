@@ -3,15 +3,21 @@
  * Cole este código em Extensões > Apps Script de uma planilha Google
  * e implante como App da Web (veja README.md).
  *
- * Cada jogador é uma linha da aba "Ranking", atualizada a cada caso respondido.
+ * Aba "Ranking": uma linha por jogador, atualizada a cada caso respondido.
+ * Aba "Respostas": uma linha por caso respondido, com o que o aluno marcou
+ * em cada princípio (✔ certo, ✘ errado).
  */
 const ABA = "Ranking";
 const COLUNAS = ["id", "Nome", "Turma", "Pontos", "Casos feitos", "Tempo (s)", "Atualizado em"];
 
-function aba_() {
+const ABA_RESP = "Respostas";
+const COLUNAS_RESP = ["Data", "Nome", "Turma", "Caso", "Título", "Autonomia", "Beneficência", "Não maleficência", "Justiça", "Acertos"];
+
+function aba_(nome, colunas) {
+  nome = nome || ABA; colunas = colunas || COLUNAS;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sh = ss.getSheetByName(ABA) || ss.insertSheet(ABA);
-  if (sh.getLastRow() === 0) sh.appendRow(COLUNAS);
+  const sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
+  if (sh.getLastRow() === 0) { sh.appendRow(colunas); sh.setFrozenRows(1); }
   return sh;
 }
 
@@ -54,6 +60,15 @@ function doPost(e) {
     const i = ids.findIndex(r => r[0] === id);
     if (i >= 0) sh.getRange(i + 2, 1, 1, linha.length).setValues([linha]);
     else sh.appendRow(linha);
+
+    const r = d.resposta;
+    if (r && typeof r === "object") {
+      aba_(ABA_RESP, COLUNAS_RESP).appendRow([
+        new Date(), linha[1], linha[2], numero_(r.caso, 100), texto_(r.titulo, 80),
+        texto_(r.autonomia, 60), texto_(r.beneficencia, 60), texto_(r.naoMaleficencia, 60), texto_(r.justica, 60),
+        numero_(r.acertos, 4)
+      ]);
+    }
   } finally {
     lock.releaseLock();
   }

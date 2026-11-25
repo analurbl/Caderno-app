@@ -21,7 +21,7 @@ Jogo de uma página para a sala de aula. O aluno lê o QR code, digita o nome e 
 
 ## Ligar o ranking (uma vez, cerca de 5 minutos)
 
-O ranking fica numa planilha Google sua, e você vê ali todos os nomes e pontos.
+O ranking fica numa planilha Google sua. A aba "Ranking" mostra nome, turma, pontos e tempo de cada aluno. A aba "Respostas" mostra, para cada caso, o que o aluno marcou em cada princípio (✔ certo, ✘ errado, com a resposta certa).
 
 1. Crie uma planilha nova em sheets.google.com (por exemplo, "Ranking Bioética").
 2. Menu **Extensões > Apps Script**. Apague o que estiver lá e cole o conteúdo de `ranking-apps-script.gs`. Salve.
