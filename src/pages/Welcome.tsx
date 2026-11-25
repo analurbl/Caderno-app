@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
-import { Mascot, showMessage } from "../components/ui";
+import { Logo, Mascot, showMessage } from "../components/ui";
 
 export default function Welcome() {
   return (
     <main className="hero">
       <div>
-        <div className="brand">Caderno</div>
+        <div className="row" style={{ gap: 12 }}>
+          <Logo size={56} />
+          <div className="brand">Lumio</div>
+        </div>
         <p className="muted" style={{ fontSize: "1.15rem", marginTop: 6 }}>
           Seu espaço para estudar com foco e constância.
         </p>
@@ -51,7 +54,7 @@ export default function Welcome() {
 }
 
 export const TERMS =
-  "O Caderno é uma ferramenta de apoio aos estudos. As questões geradas por IA são inspiradas no estilo das bancas e não são questões oficiais. Confira legislação e conteúdos sujeitos a atualização em fontes oficiais.";
+  "O Lumio é uma ferramenta de apoio aos estudos. As questões geradas por IA são inspiradas no estilo das bancas e não são questões oficiais. Confira legislação e conteúdos sujeitos a atualização em fontes oficiais.";
 
 export const PRIVACY =
   "Nesta versão, seus dados ficam salvos apenas neste dispositivo/navegador. Quando você gera questões ou pede explicações, o conteúdo selecionado (matéria, assuntos e o material que você escolher enviar) é enviado ao serviço de IA somente para criar a resposta. Você pode exportar ou excluir seus dados a qualquer momento no Perfil.";

@@ -161,9 +161,9 @@ function ActiveTimer({ contextSelectors, onFinished }: { contextSelectors: React
   }, [reached]);
 
   useEffect(() => {
-    document.title = `${fmtClock(elapsed)} · Caderno`;
+    document.title = `${fmtClock(elapsed)} · Lumio`;
     return () => {
-      document.title = "Caderno";
+      document.title = "Lumio";
     };
   }, [elapsed]);
 

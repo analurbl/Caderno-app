@@ -43,5 +43,5 @@ if (process.env.NODE_ENV === "production" && fs.existsSync(dist)) {
 
 const port = Number(process.env.PORT) || 8787;
 app.listen(port, () => {
-  console.log(`Caderno API ouvindo em http://localhost:${port}`);
+  console.log(`Lumio API ouvindo em http://localhost:${port}`);
 });

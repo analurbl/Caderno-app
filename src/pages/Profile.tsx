@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { exportData, useStore } from "../store";
-import { Chips, Icon, Mascot, Toggle, TopBar, confirmAction, showMessage } from "../components/ui";
+import { Chips, Icon, Logo, Mascot, Toggle, TopBar, confirmAction, showMessage } from "../components/ui";
 import { saveFile } from "../lib/api";
 import { isKit } from "../lib/kit";
 import { KitCard } from "../components/KitCard";
@@ -19,7 +19,7 @@ export default function Profile() {
 
   const download = async () => {
     try {
-      await saveFile(`caderno-dados-${new Date().toISOString().slice(0, 10)}.json`, exportData());
+      await saveFile(`lumio-dados-${new Date().toISOString().slice(0, 10)}.json`, exportData());
     } catch (e) {
       await showMessage((e as Error).message);
     }
@@ -39,7 +39,7 @@ export default function Profile() {
       s.importData(parsed.data);
       await showMessage("Dados importados.", "Pronto");
     } catch {
-      await showMessage("Arquivo inválido. Use um arquivo exportado pelo Caderno ou um plano de estudos.");
+      await showMessage("Arquivo inválido. Use um arquivo exportado pelo Lumio ou um plano de estudos.");
     }
   };
 
@@ -222,7 +222,10 @@ export default function Profile() {
         >
           Sair da conta
         </button>
-        <p className="tiny muted center">Caderno · versão 0.1 (MVP)</p>
+        <div className="row center" style={{ justifyContent: "center", gap: 8 }}>
+          <Logo size={24} />
+          <span className="tiny muted">Lumio · versão 0.1 (MVP)</span>
+        </div>
       </main>
     </>
   );

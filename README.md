@@ -1,6 +1,6 @@
-# Caderno
+# Lumio
 
-Espaço de estudos para quem se prepara para concursos públicos: cadernos, matérias e assuntos, cronômetro de estudo, metas, calendário, estatísticas e **questões geradas por IA** no estilo de bancas como FGV, AOCP e Instituto Avalia.
+O Lumio (antes chamado Caderno) é um espaço de estudos para quem se prepara para concursos públicos: cadernos, matérias e assuntos, cronômetro de estudo, metas, calendário, estatísticas e **questões geradas por IA** no estilo de bancas como FGV, AOCP e Instituto Avalia.
 
 Esta é a primeira versão (MVP) da especificação de produto. É um app web *mobile first*: abra no celular ou numa janela estreita.
 

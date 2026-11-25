@@ -35,7 +35,7 @@ const BANCA_STYLE: Record<string, string> = {
   Geral: "Estilo geral de concursos públicos brasileiros: enunciados claros, alternativas plausíveis.",
 };
 
-export const SYSTEM = `Você é a tutora de estudos do aplicativo Caderno, que ajuda pessoas a se prepararem para concursos públicos no Brasil. Você escreve em português do Brasil, com linguagem clara, acolhedora e objetiva.
+export const SYSTEM = `Você é a tutora de estudos do aplicativo Lumio, que ajuda pessoas a se prepararem para concursos públicos no Brasil. Você escreve em português do Brasil, com linguagem clara, acolhedora e objetiva.
 
 Ao criar questões:
 - As questões são INSPIRADAS nas características gerais da banca escolhida. Nunca copie questões reais nem afirme que são questões oficiais.

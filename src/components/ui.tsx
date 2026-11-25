@@ -72,6 +72,19 @@ export function Mascot({ mood, size = 72 }: { mood: Mood; size?: number }) {
   );
 }
 
+/** Logo do Lumio: caderno com estrela sobre fundo lilás. */
+export function Logo({ size = 40 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="Lumio" style={{ flexShrink: 0 }}>
+      <rect width="64" height="64" rx="16" fill="#A879E8" />
+      <rect x="17" y="11" width="32" height="42" rx="6" fill="#FAF8FC" />
+      <path d="M17 17a6 6 0 0 1 6-6h1v42h-1a6 6 0 0 1-6-6z" fill="#F3B8CF" />
+      <path d="M28.5 23h13M28.5 43h13" stroke="#E8DDF8" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M35 25.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#F7DF83" stroke="#E8B93A" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Progresso                                                           */
 /* ------------------------------------------------------------------ */

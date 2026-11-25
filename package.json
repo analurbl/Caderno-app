@@ -2,7 +2,7 @@
   "name": "caderno-app",
   "version": "0.1.0",
   "private": true,
-  "description": "Caderno \u2014 espa\u00e7o de estudos para concursos p\u00fablicos, com cadernos, cron\u00f4metro, metas e quest\u00f5es geradas por IA.",
+  "description": "Lumio — espaço de estudos para concursos públicos, com cadernos, cronômetro, metas, cronograma e questões geradas por IA.",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n web,api -c magenta,cyan \"vite\" \"tsx watch server/index.ts\"",
