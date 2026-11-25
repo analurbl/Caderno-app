@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lumio</title>
+<meta name="apple-mobile-web-app-title" content="Lumio">
+<meta name="theme-color" content="#A879E8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root { --bg:#FAF8FC; --text:#25232B; --muted:#6b6673; --accent:#7f4fcf; --card:#fff; --border:#ebe5f2; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17151c; --text:#f2eff7; --muted:#b1abbb; --accent:#8a5bd6; --card:#221f29; --border:#36313f; color-scheme: dark; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:440px; margin:0 auto; padding:32px max(20px, env(safe-area-inset-right)) 32px max(20px, env(safe-area-inset-left)); display:flex; flex-direction:column; gap:18px; }
+  .brand { display:flex; align-items:center; gap:12px; font-size:2rem; font-weight:800; }
+  .brand img { width:56px; height:56px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:16px; }
+  ol { margin:8px 0 0; padding-left:20px; }
+  li { margin:4px 0; }
+  .muted { color:var(--muted); font-size:.9rem; }
+  a.btn { display:block; text-align:center; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; padding:14px; border-radius:16px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><img src="favicon.svg" alt=""> Lumio</div>
+  <p>Este é o atalho do Lumio para a tela inicial do celular. Ao tocar no ícone, o app abre no Claude.</p>
+  <div class="card">
+    <strong>iPhone (Safari)</strong>
+    <ol><li>Toque em Compartilhar (quadrado com seta).</li><li>Escolha <b>Adicionar à Tela de Início</b> e confirme.</li></ol>
+  </div>
+  <div class="card">
+    <strong>Android (Chrome)</strong>
+    <ol><li>Toque no menu ⋮.</li><li>Escolha <b>Adicionar à tela inicial</b> e confirme.</li></ol>
+  </div>
+  <a class="btn" id="open" href="#">Abrir o Lumio agora</a>
+  <p class="muted">Você precisa estar com a conta do Claude conectada no navegador. Seus dados continuam no Lumio dentro do Claude.</p>
+</main>
+<script>
+  var APP = "https://claude.ai/artifact/FqAFfzcMRxNHZNy3yqsdmP";
+  document.getElementById("open").href = APP;
+  var params = new URLSearchParams(location.search);
+  if (params.has("abrir")) {
+    // Aberto pelo ícone da tela inicial: vai direto para o app.
+    location.replace(APP);
+  } else {
+    // O endereço salvo no atalho passa a ser o que abre o app direto.
+    history.replaceState(null, "", location.pathname + "?abrir=1");
+  }
+</script>
+</body>
+</html>
