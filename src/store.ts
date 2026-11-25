@@ -18,6 +18,7 @@ import type {
 } from "./types";
 import { activeElapsed, activePaused, dayKey, uid } from "./lib/time";
 import { kitToRecords, type StudyKit } from "./lib/kit";
+import type { StudyUpdate } from "./lib/updates";
 
 export const NOTEBOOK_COLORS = ["#A879E8", "#F3B8CF", "#F7DF83", "#A9DED2", "#B9D0F2", "#F29A91"];
 export const NOTEBOOK_ICONS = ["📘", "🩺", "⚖️", "🧠", "🫀", "🧮", "✍️", "🌎", "💼", "🔬", "🏛️", "💡", "📐"];
@@ -42,6 +43,7 @@ export const defaultPreferences: Preferences = {
   },
   setupDone: false,
   appliedKits: [],
+  appliedUpdates: [],
 };
 
 export interface State {
@@ -58,6 +60,8 @@ export interface State {
   errors: ErrorEntry[];
   reviews: Review[];
   plan: PlanItem[];
+  /** Últimas atualizações recebidas pelo canal (para o aviso no início). */
+  updateLog: { id: string; title: string; summary: string; at: number }[];
   lastContext?: { notebookId?: ID; subjectId?: ID; topicId?: ID };
 }
 
@@ -69,6 +73,7 @@ interface Actions {
   importData(data: Partial<State>): void;
   applyKit(kit: StudyKit): void;
   setPlanDone(id: ID, done: boolean): void;
+  applyUpdates(updates: StudyUpdate[]): number;
   /** Marca como feitos os blocos de questões de hoje ligados a esta matéria. */
   completePlannedPractice(subjectId?: ID): void;
   setPrefs(p: Partial<Preferences>): void;
@@ -131,6 +136,7 @@ const emptyData = (): Omit<State, "account" | "loggedIn" | "prefs"> => ({
   errors: [],
   reviews: [],
   plan: [],
+  updateLog: [],
   lastContext: undefined,
 });
 
@@ -190,6 +196,64 @@ export const useStore = create<State & Actions>()(
             },
           };
         }),
+      applyUpdates: (updates) => {
+        const pending = updates.filter((u) => !get().prefs.appliedUpdates.includes(u.id));
+        if (!pending.length) return 0;
+        set((s) => {
+          let { topics, sessions, reviews, plan, errors } = s;
+          const now = Date.now();
+          const subNb = new Map(s.subjects.map((x) => [x.id, x.notebookId]));
+          const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" });
+          for (const u of pending) {
+            const r = kitToRecords({ kind: "kit", id: u.id, title: u.title, notebooks: [], subjects: [], topics: u.topics ?? [], sessions: u.sessions ?? [] });
+            const topicIds = new Set(topics.map((t) => t.id));
+            topics = [...topics, ...r.topics.filter((t) => !topicIds.has(t.id) && subNb.has(t.subjectId))];
+            const sessionIds = new Set(sessions.map((x) => x.id));
+            sessions = [...sessions, ...r.sessions.filter((x) => !sessionIds.has(x.id)).map((x) => ({ ...x, notebookId: x.subjectId ? subNb.get(x.subjectId) : undefined }))];
+            const reviewIds = new Set(reviews.map((x) => x.id));
+            reviews = [...reviews, ...(u.reviews ?? []).filter((x) => !reviewIds.has(x.id)).map((x) => ({ ...x, done: false }))];
+            const planIds = new Set(plan.map((x) => x.id));
+            plan = [...plan, ...(u.plan ?? []).filter((x) => !planIds.has(x.id)).map((x) => ({ ...x, start: x.start ?? "", end: x.end ?? "", done: false }))];
+            if (u.planDone?.length) plan = plan.map((p) => (u.planDone!.includes(p.id) && !p.done ? { ...p, done: true, doneAt: now } : p));
+            for (const patch of u.topicPatches ?? []) {
+              topics = topics.map((t) => {
+                if (t.id !== patch.topicId) return t;
+                const header = `— Do seu resumo (${fmt.format(new Date(u.createdAt))}) —`;
+                const notes = patch.appendNotes?.trim() ? `${t.notes.trim()}${t.notes.trim() ? "\n\n" : ""}${header}\n${patch.appendNotes.trim()}` : t.notes;
+                return { ...t, notes, status: patch.status ?? t.status, lastReview: patch.lastReview ?? t.lastReview };
+              });
+            }
+            const errorIds = new Set(errors.map((e) => e.question.id));
+            errors = [
+              ...(u.errors ?? [])
+                .filter((e) => !errorIds.has(e.id))
+                .map((e) => ({
+                  id: e.id,
+                  question: { ...e.question, id: e.id },
+                  banca: e.banca ?? "Geral",
+                  subjectId: e.subjectId,
+                  notebookId: e.subjectId ? subNb.get(e.subjectId) : undefined,
+                  choice: e.choice ?? "",
+                  status: "pendente" as const,
+                  personalNote: "",
+                  addedAt: now,
+                  manual: false,
+                })),
+              ...errors,
+            ];
+          }
+          return {
+            topics,
+            sessions,
+            reviews,
+            plan,
+            errors,
+            updateLog: [...pending.map((u) => ({ id: u.id, title: u.title, summary: u.summary ?? "", at: now })), ...s.updateLog].slice(0, 10),
+            prefs: { ...s.prefs, appliedUpdates: [...s.prefs.appliedUpdates, ...pending.map((u) => u.id)] },
+          };
+        });
+        return pending.length;
+      },
       setPlanDone: (id, done) =>
         set((s) => ({ plan: s.plan.map((p) => (p.id === id ? { ...p, done, doneAt: done ? Date.now() : undefined } : p)) })),
       completePlannedPractice: (subjectId) =>

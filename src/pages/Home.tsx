@@ -52,6 +52,7 @@ export default function Home() {
       </header>
 
       <KitCard />
+      <UpdateNotice />
 
       {activeNotebooks.length === 0 ? (
         <div className="card">
@@ -263,5 +264,25 @@ function TodaySchedule({ now }: { now: number }) {
         </div>
       )}
     </section>
+  );
+}
+
+/** Aviso discreto quando chegou uma atualização do resumo de estudos. */
+function UpdateNotice() {
+  const latest = useStore((s) => s.updateLog[0]);
+  const dismissed = useStore((s) => s.prefs.dismissedUpdate);
+  const setPrefs = useStore((s) => s.setPrefs);
+  if (!latest || latest.id === dismissed || Date.now() - latest.at > 3 * 86_400_000) return null;
+  return (
+    <div className="banner small" role="status">
+      <Mascot mood="revisao" size={36} />
+      <div className="grow stack" style={{ gap: 2 }}>
+        <strong>Atualizado pelo seu resumo: {latest.title}</strong>
+        {latest.summary && <span className="muted">{latest.summary}</span>}
+      </div>
+      <button className="icon-btn" aria-label="Fechar aviso" onClick={() => setPrefs({ dismissedUpdate: latest.id })}>
+        <Icon name="close" size={18} />
+      </button>
+    </div>
   );
 }

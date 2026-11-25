@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useStore } from "./store";
 import { BottomNav, Mascot, Sheet, confirmAction } from "./components/ui";
 import { DialogHost } from "./components/dialog";
+import { fetchUpdates } from "./lib/updates";
 import { activeElapsed, fmtDuration } from "./lib/time";
 import Welcome from "./pages/Welcome";
 import { Login, SignUp } from "./pages/Auth";
@@ -35,6 +36,7 @@ export default function App() {
 
   useTheme(prefs.theme, prefs.reduceMotion);
   useHeartbeat();
+  useUpdatesSync(loggedIn && Boolean(account));
 
   if (!loggedIn || !account) {
     return (
@@ -98,6 +100,28 @@ function useTheme(theme: "system" | "light" | "dark", reduceMotion: boolean) {
   useEffect(() => {
     document.documentElement.dataset.motion = reduceMotion ? "reduce" : "auto";
   }, [reduceMotion]);
+}
+
+/** Busca novidades no canal de atualizações ao abrir o app e ao voltar para ele. */
+function useUpdatesSync(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) return;
+    let busy = false;
+    const sync = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const updates = await fetchUpdates();
+        if (updates.length) useStore.getState().applyUpdates(updates);
+      } finally {
+        busy = false;
+      }
+    };
+    void sync();
+    const onVisible = () => document.visibilityState === "visible" && void sync();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [enabled]);
 }
 
 /** Registra periodicamente que o app está aberto, para detectar sessões interrompidas. */

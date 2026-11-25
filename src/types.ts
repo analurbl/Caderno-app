@@ -33,6 +33,8 @@ export interface Preferences {
   };
   setupDone: boolean;
   appliedKits: string[];
+  appliedUpdates: string[];
+  dismissedUpdate?: string;
 }
 
 export interface Notebook {
