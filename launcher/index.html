@@ -33,7 +33,7 @@
   </div>
   <div class="card">
     <strong>Android (Chrome)</strong>
-    <ol><li>Toque no menu ⋮.</li><li>Escolha <b>Adicionar à tela inicial</b> e confirme.</li></ol>
+    <ol><li>Toque no menu ⋮.</li><li>Escolha <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b> → <b>Instalar</b>) e confirme.</li></ol>
   </div>
   <a class="btn" id="open" href="#">Abrir o Lumio agora</a>
   <p class="muted">Você precisa estar com a conta do Claude conectada no navegador. Seus dados continuam no Lumio dentro do Claude.</p>
@@ -48,6 +48,8 @@
   } else {
     // O endereço salvo no atalho passa a ser o que abre o app direto.
     history.replaceState(null, "", location.pathname + "?abrir=1");
+    // Necessário para o Chrome oferecer "Instalar app" com o ícone do Lumio.
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
   }
 </script>
 </body>
