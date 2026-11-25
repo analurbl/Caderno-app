@@ -1,4 +1,4 @@
-import type { Banca, GoalType, Notebook, Preferences, Priority, StudySession, Subject, Topic, TopicStatus } from "../types";
+import type { Banca, GoalType, Notebook, PlanKind, Preferences, Priority, StudySession, Subject, Topic, TopicStatus } from "../types";
 import { parseDayKey } from "./time";
 
 /**
@@ -11,6 +11,8 @@ export interface StudyKit {
   id: string;
   title: string;
   summary?: string;
+  /** Planos anteriores que este atualiza (a tela mostra "atualização" e não reaplica preferências). */
+  supersedes?: string[];
   prefs?: Partial<Pick<Preferences, "objetivo" | "prova" | "dailyMinutes" | "studyDays">> & { banca?: Banca };
   notebooks: { id: string; name: string; description?: string; color?: string; icon?: string; objetivo?: string; examDate?: string; weeklyGoalMin?: number }[];
   subjects: { id: string; notebookId: string; name: string; priority?: Priority; goalMinPerWeek?: number }[];
@@ -19,6 +21,8 @@ export interface StudyKit {
   sessions?: { id: string; date: string; time: string; minutes: number; subjectId?: string; topicId?: string; note?: string }[];
   goals?: { id: string; type: GoalType; target: number; subjectId?: string; days?: number[] }[];
   reviews?: { id: string; topicId: string; date: string }[];
+  /** Cronograma: blocos por dia, opcionalmente ligados a matéria e assunto. */
+  plan?: { id: string; date: string; start?: string; end?: string; title: string; kind: PlanKind; notebookId?: string; subjectId?: string; topicId?: string; note?: string }[];
 }
 
 declare const __KIT__: StudyKit | null;
@@ -32,7 +36,7 @@ export function isKit(v: unknown): v is StudyKit {
 }
 
 export function kitCounts(k: StudyKit) {
-  return { notebooks: k.notebooks.length, subjects: k.subjects.length, topics: k.topics.length, sessions: k.sessions?.length ?? 0, goals: k.goals?.length ?? 0, reviews: k.reviews?.length ?? 0 };
+  return { notebooks: k.notebooks.length, subjects: k.subjects.length, topics: k.topics.length, sessions: k.sessions?.length ?? 0, goals: k.goals?.length ?? 0, reviews: k.reviews?.length ?? 0, plan: new Set((k.plan ?? []).map((p) => p.date)).size };
 }
 
 /** Converte o plano para os registros do app (no fuso horário de quem usa). */

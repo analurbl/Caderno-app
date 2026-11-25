@@ -28,8 +28,11 @@ export default function Study() {
   }, []);
 
   const [ctx, setCtx] = useState<{ notebookId?: string; subjectId?: string; topicId?: string }>(active ? { notebookId: active.notebookId, subjectId: active.subjectId, topicId: active.topicId } : initial);
-  const [target, setTarget] = useState(25);
-  const [customMin, setCustomMin] = useState("");
+  // Vindo de um bloco do cronograma (?min=90), a sessão já começa com a duração do bloco.
+  const presetMin = Number(params.get("min")) || 0;
+  const presetChoices = [0, 25, 50, 90];
+  const [target, setTarget] = useState(presetMin ? (presetChoices.includes(presetMin) ? presetMin : -1) : 25);
+  const [customMin, setCustomMin] = useState(presetMin && !presetChoices.includes(presetMin) ? String(presetMin) : "");
   const [finished, setFinished] = useState<StudySession | null>(null);
 
   useEffect(() => {

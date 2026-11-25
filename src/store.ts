@@ -8,6 +8,7 @@ import type {
   Goal,
   ID,
   Notebook,
+  PlanItem,
   Preferences,
   QuestionList,
   Review,
@@ -15,7 +16,7 @@ import type {
   Subject,
   Topic,
 } from "./types";
-import { activeElapsed, activePaused, uid } from "./lib/time";
+import { activeElapsed, activePaused, dayKey, uid } from "./lib/time";
 import { kitToRecords, type StudyKit } from "./lib/kit";
 
 export const NOTEBOOK_COLORS = ["#A879E8", "#F3B8CF", "#F7DF83", "#A9DED2", "#B9D0F2", "#F29A91"];
@@ -56,6 +57,7 @@ export interface State {
   lists: QuestionList[];
   errors: ErrorEntry[];
   reviews: Review[];
+  plan: PlanItem[];
   lastContext?: { notebookId?: ID; subjectId?: ID; topicId?: ID };
 }
 
@@ -66,6 +68,9 @@ interface Actions {
   deleteAllData(): void;
   importData(data: Partial<State>): void;
   applyKit(kit: StudyKit): void;
+  setPlanDone(id: ID, done: boolean): void;
+  /** Marca como feitos os blocos de questões de hoje ligados a esta matéria. */
+  completePlannedPractice(subjectId?: ID): void;
   setPrefs(p: Partial<Preferences>): void;
 
   addNotebook(n: Partial<Notebook> & { name: string }): ID;
@@ -125,6 +130,7 @@ const emptyData = (): Omit<State, "account" | "loggedIn" | "prefs"> => ({
   lists: [],
   errors: [],
   reviews: [],
+  plan: [],
   lastContext: undefined,
 });
 
@@ -156,6 +162,9 @@ export const useStore = create<State & Actions>()(
             return (x: { id: string }) => !ids.has(x.id);
           };
           const firstTime = !s.prefs.appliedKits.includes(kit.id);
+          // Uma atualização de um plano já carregado não reaplica as preferências.
+          const prefsKnown = !firstTime || (kit.supersedes ?? []).some((k) => s.prefs.appliedKits.includes(k));
+          const planIds = new Set(s.plan.map((x) => x.id));
           const reviewIds = new Set(s.reviews.map((x) => x.id));
           const goalIds = new Set(s.goals.map((x) => x.id));
           const now = Date.now();
@@ -171,13 +180,25 @@ export const useStore = create<State & Actions>()(
                 .map((g) => ({ id: g.id, type: g.type, target: g.target, subjectId: g.subjectId, days: g.days ?? s.prefs.studyDays, paused: false, createdAt: now, history: [{ changedAt: now, target: g.target }] })),
             ],
             reviews: [...s.reviews, ...(kit.reviews ?? []).filter((x) => !reviewIds.has(x.id)).map((x) => ({ ...x, done: false }))],
+            plan: [...s.plan, ...(kit.plan ?? []).filter((x) => !planIds.has(x.id)).map((x) => ({ ...x, start: x.start ?? "", end: x.end ?? "", done: false }))],
             // As preferências do plano só entram na primeira vez, para não desfazer ajustes posteriores.
             prefs: {
               ...s.prefs,
-              ...(firstTime ? kit.prefs ?? {} : {}),
+              ...(prefsKnown ? {} : kit.prefs ?? {}),
               setupDone: true,
               appliedKits: firstTime ? [...s.prefs.appliedKits, kit.id] : s.prefs.appliedKits,
             },
+          };
+        }),
+      setPlanDone: (id, done) =>
+        set((s) => ({ plan: s.plan.map((p) => (p.id === id ? { ...p, done, doneAt: done ? Date.now() : undefined } : p)) })),
+      completePlannedPractice: (subjectId) =>
+        set((s) => {
+          const today = dayKey();
+          return {
+            plan: s.plan.map((p) =>
+              p.date === today && !p.done && (p.kind === "questoes" || p.kind === "simulado") && subjectId && p.subjectId === subjectId ? { ...p, done: true, doneAt: Date.now() } : p,
+            ),
           };
         }),
       setPrefs: (p) => set((s) => ({ prefs: { ...s.prefs, ...p } })),
@@ -237,6 +258,7 @@ export const useStore = create<State & Actions>()(
             topics: s.topics.filter((t) => !subjectIds.has(t.subjectId)),
             reviews: s.reviews.filter((r) => !topicIds.has(r.topicId)),
             goals: s.goals.filter((g) => !g.subjectId || !subjectIds.has(g.subjectId)),
+            plan: s.plan.map((p) => (p.notebookId === id || (p.subjectId && subjectIds.has(p.subjectId)) ? { ...p, notebookId: undefined, subjectId: undefined, topicId: undefined } : p)),
             // Sessões permanecem no histórico de tempo, sem vínculo com o caderno removido.
             sessions: s.sessions.map((x) =>
               x.notebookId === id ? { ...x, notebookId: undefined, subjectId: undefined, topicId: undefined } : x,
@@ -290,6 +312,7 @@ export const useStore = create<State & Actions>()(
             topics: s.topics.filter((t) => t.subjectId !== id),
             reviews: s.reviews.filter((r) => !topicIds.has(r.topicId)),
             goals: s.goals.filter((g) => g.subjectId !== id),
+            plan: s.plan.map((p) => (p.subjectId === id ? { ...p, subjectId: undefined, topicId: undefined } : p)),
             sessions: s.sessions.map((x) => (x.subjectId === id ? { ...x, subjectId: undefined, topicId: undefined } : x)),
           };
         }),
@@ -320,6 +343,7 @@ export const useStore = create<State & Actions>()(
           topics: s.topics.filter((t) => t.id !== id),
           reviews: s.reviews.filter((r) => r.topicId !== id),
           sessions: s.sessions.map((x) => (x.topicId === id ? { ...x, topicId: undefined } : x)),
+          plan: s.plan.map((p) => (p.topicId === id ? { ...p, topicId: undefined } : p)),
         })),
 
       /* Sessão de estudo */
@@ -372,6 +396,15 @@ export const useStore = create<State & Actions>()(
             notebooks: s.notebooks.map((n) => (n.id === a.notebookId ? { ...n, lastAccess: touched } : n)),
             subjects: s.subjects.map((x) => (x.id === a.subjectId ? { ...x, lastAccess: touched } : x)),
             topics: s.topics.map((t) => (t.id === a.topicId && t.status === "nao_iniciado" ? { ...t, status: "estudando" } : t)),
+            // Bloco de hoje do cronograma que corresponde a esta sessão fica marcado como feito.
+            plan:
+              durationSec > 0
+                ? s.plan.map((p) => {
+                    if (p.done || p.date !== dayKey(a.startedAt) || !(p.kind === "estudo" || p.kind === "revisao")) return p;
+                    const match = p.topicId ? p.topicId === a.topicId : Boolean(p.subjectId) && p.subjectId === a.subjectId;
+                    return match ? { ...p, done: true, doneAt: touched } : p;
+                  })
+                : s.plan,
           };
         });
         return durationSec > 0 ? session : null;

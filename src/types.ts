@@ -195,3 +195,21 @@ export interface Review {
   done: boolean;
   doneAt?: number;
 }
+
+/** Um bloco do cronograma (por exemplo, "7h30–9h00: Lei 8.142"). */
+export type PlanKind = "estudo" | "questoes" | "revisao" | "simulado" | "tarefa" | "marco";
+
+export interface PlanItem {
+  id: ID;
+  date: string; // aaaa-mm-dd
+  start: string; // hh:mm, vazio para o dia todo
+  end: string;
+  title: string;
+  kind: PlanKind;
+  notebookId?: ID;
+  subjectId?: ID;
+  topicId?: ID;
+  note?: string;
+  done: boolean;
+  doneAt?: number;
+}

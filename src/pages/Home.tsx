@@ -5,6 +5,9 @@ import { addDays, fmtDuration, fmtLongDate, greeting, startOfDay, startOfWeek, s
 import { dailyMessage, dailyTargetMin, goalProgress, reviewsDue, suggestion } from "../lib/stats";
 import { useNow } from "../lib/hooks";
 import { KitCard } from "../components/KitCard";
+import { PlanBlocks } from "../components/PlanBlocks";
+import { blocksOn, nextPlannedDay, upcomingMilestones } from "../lib/plan";
+import { dayKey, fmtShortDate, parseDayKey, WEEKDAY_SHORT } from "../lib/time";
 import { activeElapsed } from "../lib/time";
 
 export default function Home() {
@@ -131,10 +134,13 @@ export default function Home() {
         </div>
       )}
 
-      {/* Plano de hoje */}
+      {/* Cronograma */}
+      {s.plan.length > 0 && <TodaySchedule now={now} />}
+
+      {/* Metas */}
       <section className="stack">
         <div className="row between">
-          <h2 className="section-title">Seu plano de hoje</h2>
+          <h2 className="section-title">Suas metas</h2>
           <Link to="/metas" className="link-btn small">
             Metas
           </Link>
@@ -207,5 +213,55 @@ export default function Home() {
         {dailyMessage(new Date(now))}
       </p>
     </main>
+  );
+}
+
+function TodaySchedule({ now }: { now: number }) {
+  const plan = useStore((s) => s.plan);
+  const today = dayKey(now);
+  const blocks = blocksOn(plan, today);
+  const next = blocks.length ? null : nextPlannedDay(plan, today);
+  const milestones = upcomingMilestones(plan, today);
+  const done = blocks.filter((b) => b.done).length;
+  return (
+    <section className="stack" aria-label="Cronograma de hoje">
+      <div className="row between">
+        <h2 className="section-title">Cronograma de hoje</h2>
+        <Link to="/calendario" className="link-btn small">
+          Ver dias
+        </Link>
+      </div>
+      {milestones.map((m) => (
+        <div key={m.id} className="banner warn small">
+          <Icon name="calendar" />
+          <span>
+            <strong>{m.date === today ? "Hoje" : `${WEEKDAY_SHORT[parseDayKey(m.date).getDay()]}, ${fmtShortDate(m.date)}`}:</strong> {m.title}
+          </span>
+        </div>
+      ))}
+      {blocks.length > 0 ? (
+        <>
+          <PlanBlocks items={blocks} />
+          <span className="tiny muted">
+            {done === blocks.length ? "Tudo feito por hoje. Bom trabalho!" : `${done} de ${blocks.length} blocos feitos. Ao terminar uma sessão do assunto, o bloco é marcado sozinho.`}
+          </span>
+        </>
+      ) : (
+        <div className="card small">
+          <strong>Nada programado para hoje.</strong>{" "}
+          {next ? (
+            <span className="muted">
+              Próximo estudo: {WEEKDAY_SHORT[parseDayKey(next).getDay()]}, {fmtShortDate(next)} —{" "}
+              {blocksOn(plan, next)
+                .map((b) => b.title)
+                .join(" + ")}
+              .
+            </span>
+          ) : (
+            <span className="muted">O cronograma terminou.</span>
+          )}
+        </div>
+      )}
+    </section>
   );
 }

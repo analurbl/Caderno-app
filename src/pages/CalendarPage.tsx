@@ -3,6 +3,8 @@ import { useStore } from "../store";
 import { Icon, Sheet, TopBar, confirmAction } from "../components/ui";
 import { WEEKDAY_SHORT, addDays, dayKey, fmtDuration, fmtLongDate, monthLabel, parseDayKey, secondsByDay, startOfDay } from "../lib/time";
 import { dailyTargetMin } from "../lib/stats";
+import { itemsOn } from "../lib/plan";
+import { PlanBlocks } from "../components/PlanBlocks";
 import type { StudySession } from "../types";
 
 export default function CalendarPage() {
@@ -23,6 +25,8 @@ export default function CalendarPage() {
   const maxSec = Math.max(3600, ...[...byDay.values()]);
 
   const reviewDays = new Set(s.reviews.map((r) => r.date));
+  const planDays = new Set(s.plan.filter((p) => p.kind !== "marco").map((p) => p.date));
+  const markDays = new Set(s.plan.filter((p) => p.kind === "marco").map((p) => p.date));
   const listDays = new Set(s.lists.filter((l) => l.finishedAt).map((l) => dayKey(l.finishedAt!)));
 
   const sel = parseDayKey(selected);
@@ -30,6 +34,7 @@ export default function CalendarPage() {
   const selTotal = selSessions.reduce((a, x) => a + x.durationSec, 0);
   const selTarget = dailyTargetMin(s.goals, s.prefs.dailyMinutes, s.prefs.studyDays, sel.getTime() + 12 * 3600_000);
   const selReviews = s.reviews.filter((r) => r.date === selected);
+  const selPlan = itemsOn(s.plan, selected);
   const selLists = s.lists.filter((l) => l.finishedAt && dayKey(l.finishedAt) === selected);
   const isFuture = selected > todayKey;
   const isRest = !s.prefs.studyDays.includes(sel.getDay());
@@ -69,12 +74,14 @@ export default function CalendarPage() {
                   key={k}
                   className={cls}
                   style={sec ? { background: `color-mix(in srgb, var(--lilac) ${Math.round(intensity * 100)}%, var(--surface))` } : undefined}
-                  aria-label={`${d.getDate()}: ${sec ? fmtDuration(sec) + " estudados" : future ? "ainda não chegou" : rest ? "dia de descanso" : "sem registro"}${reviewDays.has(k) ? ", revisão agendada" : ""}${listDays.has(k) ? ", questões resolvidas" : ""}`}
+                  aria-label={`${d.getDate()}: ${sec ? fmtDuration(sec) + " estudados" : future ? "ainda não chegou" : rest ? "dia de descanso" : "sem registro"}${reviewDays.has(k) ? ", revisão agendada" : ""}${listDays.has(k) ? ", questões resolvidas" : ""}${planDays.has(k) ? ", estudo programado" : ""}${markDays.has(k) ? ", data importante" : ""}`}
                   aria-pressed={k === selected}
                   onClick={() => setSelected(k)}
                 >
                   {d.getDate()}
                   <span className="row" style={{ gap: 2, height: 6 }}>
+                    {planDays.has(k) && <span className="dot" style={{ background: "var(--lilac-strong)" }} />}
+                    {markDays.has(k) && <span className="dot" style={{ background: "#b58a00" }} />}
                     {reviewDays.has(k) && <span className="dot" style={{ background: "var(--coral)" }} />}
                     {listDays.has(k) && <span className="dot" style={{ background: "#3d6fb6" }} />}
                   </span>
@@ -98,6 +105,16 @@ export default function CalendarPage() {
             <span className="row" style={{ gap: 4 }}>
               <span className="dot" style={{ width: 8, height: 8, borderRadius: 9, background: "#3d6fb6" }} /> questões
             </span>
+            {s.plan.length > 0 && (
+              <>
+                <span className="row" style={{ gap: 4 }}>
+                  <span className="dot" style={{ width: 8, height: 8, borderRadius: 9, background: "var(--lilac-strong)" }} /> cronograma
+                </span>
+                <span className="row" style={{ gap: 4 }}>
+                  <span className="dot" style={{ width: 8, height: 8, borderRadius: 9, background: "#b58a00" }} /> data importante
+                </span>
+              </>
+            )}
           </div>
         </section>
 
@@ -105,8 +122,14 @@ export default function CalendarPage() {
           <h2 className="section-title">
             {fmtLongDate(sel)}
           </h2>
+          {selPlan.length > 0 && (
+            <>
+              <span className="label">Cronograma</span>
+              <PlanBlocks items={selPlan} canAct={selected === todayKey} />
+            </>
+          )}
           {isFuture ? (
-            <p className="small muted">Este dia ainda não chegou.</p>
+            <p className="small muted">{selPlan.length ? "Este dia ainda não chegou." : "Este dia ainda não chegou e não tem nada programado."}</p>
           ) : (
             <p>
               <strong>{fmtDuration(selTotal)}</strong> estudados

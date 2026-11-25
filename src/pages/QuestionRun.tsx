@@ -9,6 +9,7 @@ import type { Answer, Question, QuestionList } from "../types";
 export function finishList(list: QuestionList) {
   const st = useStore.getState();
   st.updateList(list.id, { finishedAt: Date.now() });
+  st.completePlannedPractice(list.config.subjectId);
   if (st.prefs.autoSaveErrors) saveErrors(list);
 }
 

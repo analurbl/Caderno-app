@@ -4,6 +4,7 @@ import { useStore } from "../store";
 import { Chips, Empty, Icon, TopBar, askText, confirmAction } from "../components/ui";
 import { addDays, dayKey, fmtDuration, fmtShortDate } from "../lib/time";
 import { STATUS_LABEL, topicSeconds } from "../lib/stats";
+import { PlanBlocks } from "../components/PlanBlocks";
 import type { TopicStatus } from "../types";
 
 export default function TopicView() {
@@ -12,6 +13,7 @@ export default function TopicView() {
   const sub = useStore((s) => s.subjects.find((x) => x.id === topic?.subjectId));
   const sessions = useStore((s) => s.sessions);
   const allReviews = useStore((s) => s.reviews);
+  const plan = useStore((s) => s.plan);
   const errors = useStore((s) => s.errors);
   const reviews = allReviews.filter((r) => r.topicId === id);
   const saved = errors.filter((e) => e.subjectId === topic?.subjectId && e.question.assunto.toLowerCase() === topic?.name.toLowerCase());
@@ -147,6 +149,19 @@ export default function TopicView() {
           </form>
           <p className="tiny muted">Anexo de arquivos (PDF e outros) chega em uma próxima versão.</p>
         </section>
+
+        {plan.some((p) => p.topicId === topic.id) && (
+          <section className="stack">
+            <h2 className="section-title">No cronograma</h2>
+            <PlanBlocks items={plan.filter((p) => p.topicId === topic.id).sort((a, b) => a.date.localeCompare(b.date))} canAct={false} />
+            <span className="tiny muted">
+              {plan
+                .filter((p) => p.topicId === topic.id)
+                .map((p) => fmtShortDate(p.date))
+                .join(", ")}
+            </span>
+          </section>
+        )}
 
         <section className="stack">
           <h2 className="section-title">Revisões</h2>
