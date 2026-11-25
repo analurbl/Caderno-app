@@ -19,7 +19,7 @@ function parametros() {
 function linkJogo(turma) { return `${baseUrl()}#/jogo${turma ? "?turma=" + encodeURIComponent(turma) : ""}`; }
 
 /* ---------- ranking (Google Apps Script) ---------- */
-async function enviarPontuacao(jogo) {
+async function enviarPontuacao(jogo, caso) {
   if (!RANKING_URL) return "sem-ranking";
   try {
     const r = await fetch(RANKING_URL, {
@@ -28,12 +28,25 @@ async function enviarPontuacao(jogo) {
       body: JSON.stringify({
         id: jogo.id, nome: jogo.nome, turma: jogo.turma, pontos: jogo.pontos,
         feitos: Object.keys(jogo.respostas).length,
-        segundos: Math.round(((jogo.fim || Date.now()) - jogo.inicio) / 1000)
+        segundos: Math.round(((jogo.fim || Date.now()) - jogo.inicio) / 1000),
+        resposta: caso ? respostaParaPlanilha(caso, jogo.respostas[caso]) : null
       })
     });
     const d = await r.json();
     return d.ok ? "ok" : "erro";
   } catch (e) { return "erro"; }
+}
+
+/* Uma linha da aba "Respostas": o que o aluno marcou em cada princípio, com ✔ ou ✘. */
+function respostaParaPlanilha(n, resp) {
+  const c = CASOS[n - 1];
+  const linha = { caso: n, titulo: c.titulo, acertos: 0 };
+  for (const p of PRINCIPIOS) {
+    const ok = resp[p.id] === c.gabarito[p.id][0];
+    if (ok) linha.acertos++;
+    linha[p.id] = `${rotulo(resp[p.id])} ${ok ? "✔" : "✘ (certo: " + rotulo(c.gabarito[p.id][0]) + ")"}`;
+  }
+  return linha;
 }
 
 async function buscarRanking(turma) {
@@ -236,7 +249,7 @@ function renderRodada(jogo, n) {
         <div class="actions"><button type="button" id="seguir">${ultimo ? "Ver resultado final" : "Próximo caso"}</button></div>
       </section>`;
     document.getElementById("seguir").onclick = () => { renderJogo(); window.scrollTo(0, 0); };
-    const st = await enviarPontuacao(jogo);
+    const st = await enviarPontuacao(jogo, n);
     const el = document.getElementById("envio");
     if (el && st === "ok") el.textContent = "Pontuação enviada para o ranking.";
     if (el && st === "erro") el.textContent = "Não foi possível enviar agora; a pontuação será enviada no próximo caso.";
